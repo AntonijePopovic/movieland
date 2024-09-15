@@ -5,13 +5,11 @@ import bodyParser from "body-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import songRoutes from "./routes/songs.js";
+import movieRoutes from "./routes/movies.js";
 import userRoutes from "./routes/users.js";
 import genreRoutes from "./routes/genre.js";
-import artistRoutes from "./routes/artists.js";
 import authRoutes from "./routes/auth.js";
-import libraryRoutes from "./routes/library.js";
-import performRoutes from "./routes/perform.js";
+// import libraryRoutes from "./routes/library.js";
 import newsRoutes from "./routes/news.js";
 import imageRoutes from "./routes/image.js";
 
@@ -20,8 +18,8 @@ const app=express();
 export const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "535170milos",
-    database: "soundsphere"
+    password: "sara1234",
+    database: "movies"
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,11 +38,9 @@ app.use("/public/slike", express.static(staticImagePath));
 // app.use(bodyParser.urlencoded({extended:true}));
 
 
-app.use("/api/songs", songRoutes);
+app.use("/api/movies", movieRoutes);
 app.use("/api/genres", genreRoutes);
-app.use("/api/artists", artistRoutes);
-app.use("/api/library", libraryRoutes);
-app.use("/api/performs", performRoutes);
+// app.use("/api/library", libraryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);

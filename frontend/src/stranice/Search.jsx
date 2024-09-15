@@ -2,21 +2,21 @@ import React, { useEffect, useState, useContext } from 'react';
 import styles from "./Search.module.css";
 import Navbar from "../komponente/Navbar";
 import { AuthContext } from '../context/authContext';
-import { SongContext } from '../context/SongContext';
+import { MovieContext } from '../context/MovieContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { AudioPlayerContext } from '../context/audioContext';
 
 const Search = () => {
   const { currentUser } = useContext(AuthContext);
-  const { addedSongs, addSong } = useContext(SongContext);
-  const {playSong}=useContext(AudioPlayerContext);
-  const [listOfSongs, setListOfSongs] = useState([]);
+  const { addedMovies, addMovie } = useContext(MovieContext);
+  const {playMovie}=useContext(AudioPlayerContext);
+  const [listOfMovies, setListOfMovies] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [filterOption, setFilterOption] = useState("-");
   const [sortOption, setSortOption] = useState("asc");
 
-  const getSongs = async () => {
+  const getMovies = async () => {
     try {
       const res = await axios.get(`/library/${currentUser.username}/exc`, {
         params: {
@@ -25,8 +25,8 @@ const Search = () => {
           search: searchText,
         },
       });
-      setListOfSongs(res.data);
-      console.log("Loaded songs!");
+      setListOfMovies(res.data);
+      console.log("Loaded movies!");
     } catch (err) {
       console.error("Greska pri fetchovanju pjesama!", err);
     }
@@ -38,35 +38,35 @@ const Search = () => {
     if (!localStorage.getItem("token")) {
       navigate('/login');
     }
-    getSongs();
+    getMovies();
   }, [filterOption, sortOption, searchText]);
 
-  const addSongEvent = async (id) => {
+  const addMovieEvent = async (id) => {
     console.log(id);
     try {
       const res = await axios.post(`/library/${currentUser.username}/${id}`);
       alert(res.data);
-      addSong(id);
+      addMovie(id);
     } catch (err) {
       console.error("Greska pri dodavanju!", err);
     }
   };
 
-  const handlePlaySong = (url) => {
-    playSong(url);
+  const handlePlayMovie = (url) => {
+    playMovie(url);
   };
 
-  const filterList = listOfSongs.filter((song)=>!addedSongs.has(song.ID));
+  const filterList = listOfMovies.filter((movie)=>!addedMovies.has(movie.ID));
 
-  const ListItemResult = ({ song }) => (
-    <div className={styles.ListItemResult} key={song.ID}>
-      <h4 onDoubleClick={() => handlePlaySong(song.url)}>{song.ime_izvodjac}</h4>
-      <h4 onDoubleClick={() => handlePlaySong(song.url)}>{song.naziv_pjesma}</h4>
-      <h5>{song.trajanje}</h5>
-      <h5>{song.zanr_naziv}</h5>
-      <h5>{song.ocjena}</h5>
+  const ListItemResult = ({ movie }) => (
+    <div className={styles.ListItemResult} key={movie.ID}>
+      <h4 onDoubleClick={() => handlePlayMovie(movie.url)}>{movie.ime_izvodjac}</h4>
+      <h4 onDoubleClick={() => handlePlayMovie(movie.url)}>{movie.naziv_pjesma}</h4>
+      <h5>{movie.trajanje}</h5>
+      <h5>{movie.zanr_naziv}</h5>
+      <h5>{movie.ocjena}</h5>
       {currentUser.je_admin === 0 ? (
-        <button className={styles.Dodaj} onClick={() => addSongEvent(song.ID)}>Dodaj pjesmu</button>
+        <button className={styles.Dodaj} onClick={() => addMovieEvent(movie.ID)}>Dodaj pjesmu</button>
       ) : (
         ""
       )}
@@ -103,10 +103,10 @@ const Search = () => {
           <div className={styles.ResultContainer}>
             <div className={styles.ListOfResults}>
               
-                {filterList?.map((song) => (
+                {filterList?.map((movie) => (
                   <ListItemResult
-                  key={song.ID}
-                  song={song}
+                  key={movie.ID}
+                  movie={movie}
                 />
                 ))}
               

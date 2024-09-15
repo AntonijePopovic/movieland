@@ -12,7 +12,7 @@ router.get("/specific", getByGenreName);
 //dodaje zanr
 router.post("/", addGenre);
 
-//brise zanr, mada samo one koji nisu uvezani sa pjesmom!!!
+//brise zanr, mada samo one koji nisu uvezani sa filmom!!!
 router.delete("/:naziv", deleteByGenreName);
 
 //azurira ime postojeceg zanra po nazivu zanra!!!

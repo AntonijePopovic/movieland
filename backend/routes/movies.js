@@ -1,15 +1,15 @@
 import express from "express";
-import { addSong, deleteByID, getBySongID, getSongs, updateByID } from "../controllers/songcontroller.js";
+import { addMovie, deleteByID, getByMovieID, getMovies, updateByID } from "../controllers/moviescontroller.js";
 const router=express.Router();
 
 //izlistaj sve pjesme koje korisnik nije lajkovao
-router.get("/", getSongs);
+router.get("/", getMovies);
 
 //kreiraj pjesmu
-router.post("/", addSong);
+router.post("/", addMovie);
 
 //uzmi pjesmu po njenom ID-ju
-router.get("/:id", getBySongID);
+router.get("/:id", getByMovieID);
 
 //azuriraj podatke pjesme koja se vadi po ID-ju pjesme!!!
 router.put("/:id", updateByID);

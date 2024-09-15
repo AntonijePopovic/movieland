@@ -7,11 +7,11 @@ import { AudioPlayerContext } from '../context/audioContext';
 const Navbar = () => {
 
     const {currentUser, logout}=useContext(AuthContext);
-    const {stopSong}=useContext(AudioPlayerContext);
+    // const {stopSong}=useContext(AudioPlayerContext);
     const navigate=useNavigate();
 
     const logoutHandle=()=>{
-        stopSong();
+        // stopSong();
         logout();
         // navigate("../login");
     }
@@ -21,7 +21,7 @@ const Navbar = () => {
             <ul className={styles.navbarList} style={{ "height": "50px" }}>
                 <div>
                     <li>
-                        <Link to={"../frontpage"} className={styles.naslov}>SoundSphere</Link>
+                        <Link to={"../frontpage"} className={styles.naslov}>Movieland</Link>
                     </li>
 
                     {currentUser.je_admin==0?

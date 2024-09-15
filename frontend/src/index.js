@@ -4,16 +4,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AuthContextProvider } from './context/authContext';
 import setupInterceptors from './Interceptor.js';
-import { SongProvider } from './context/SongContext.js';
+import { MovieProvider } from './context/MovieContext.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 setupInterceptors();
 root.render(
   <React.StrictMode>
     <AuthContextProvider>
-      <SongProvider>
+      <MovieProvider>
         <App />
-      </SongProvider>
+      </MovieProvider>
     </AuthContextProvider>
   </React.StrictMode>
 );

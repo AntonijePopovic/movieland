@@ -106,7 +106,7 @@ const Frontpage = () => {
         <div className={styles.FrontpageContainer}>
             <Navbar />
             <div  style={{ "background-color": "#202020", "color": "whitesmoke" }} className={styles.homeContainer}>
-                <h1>Welcome to the <span style={{ "color": "green" }}>SoundSphere</span>!</h1>
+                <h1>Welcome to the <span style={{ "color": "green" }}>Movieland</span>!</h1>
             </div>
             <h1 className={styles.novostheading}>Novosti zvucne sfere</h1>
             {currentUser.je_admin === 1 && (

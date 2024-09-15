@@ -2,29 +2,29 @@ import React, { useContext, useEffect, useState } from 'react';
 import styles from "./Library.module.css";
 import Navbar from "../komponente/Navbar";
 import { AuthContext } from '../context/authContext';
-import { SongContext } from '../context/SongContext';
+import { MovieContext } from '../context/MovieContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { AudioPlayerContext } from '../context/audioContext';
 
-const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onPlaySong, onSongDelete, onRatingChange }) => {
+const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onPlayMovie, onMovieDelete, onRatingChange }) => {
   const { currentUser } = useContext(AuthContext);
-  const {removeSong}=useContext(SongContext);
+  const {removeMovie}=useContext(MovieContext);
   const [editing, isEditing]=useState(false);
   const [newRating, setNewRating]=useState(ocjena);
 
-  const handlePlaySong = () => {
-    onPlaySong(url);
+  const handlePlayMovie = () => {
+    onPlayMovie(url);
   };
   
-  const unlikeSong=async()=>{
+  const unlikeMovie=async()=>{
     try{
       const res=await axios.delete(`/library/${currentUser.username}/${id}`);
       alert("Pjesma obrisana!");
-      if (onSongDelete) {
-        onSongDelete(id);
+      if (onMovieDelete) {
+        onMovieDelete(id);
       }
-      removeSong(id);
+      removeMovie(id);
     } catch(err){
       alert("Greska pri brisanju!");
       console.error("Greska pri brisanju!", err);
@@ -48,26 +48,26 @@ const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onPlay
   }
 
   return (
-    <div className={styles.SongItem}>
-      <h4 className={styles.SongName} onClick={handlePlaySong}>{naziv}</h4>
-      <h5 className={styles.SongArtist}>{artist}</h5>
-      <h5 className={styles.SongRate} title='Izmijeni ocjenu' onClick={()=>isEditing(!editing)}>{ocjena?ocjena:"dodaj"}</h5>
+    <div className={styles.MovieItem}>
+      <h4 className={styles.MovieName} onClick={handlePlayMovie}>{naziv}</h4>
+      <h5 className={styles.MovieArtist}>{artist}</h5>
+      <h5 className={styles.MovieRate} title='Izmijeni ocjenu' onClick={()=>isEditing(!editing)}>{ocjena?ocjena:"dodaj"}</h5>
      {editing && (
       <form action="" onSubmit={handleRatingSubmit}>
         <input type="number" step={0.1} value={newRating} onChange={(e)=>setNewRating(e.target.value)} />
         <button type="submit">Update</button>  
       </form>
      )}
-      <h5 className={styles.SongDuration}>{trajanje}</h5>
+      <h5 className={styles.MovieDuration}>{trajanje}</h5>
       <h5>{naziv_zanra}</h5>
-      <button className={styles.delete} onClick={unlikeSong}>Unlike</button>
+      <button className={styles.delete} onClick={unlikeMovie}>Unlike</button>
     </div>
   );
 };
 
 const Library = () => {
-  const { removeSong } = useContext(SongContext);
-  const { playSong } = useContext(AudioPlayerContext);
+  const { removeMovie } = useContext(MovieContext);
+  const { playMovie } = useContext(AudioPlayerContext);
   const [library, setLibrary] = useState([]);
   const [likedcnt, setLikedCnt] = useState();
   const { currentUser, setCurrentUser } = useContext(AuthContext);
@@ -81,13 +81,13 @@ const Library = () => {
       navigate('/login');
     }
 
-    const loadSongs = async () => {
+    const loadMovies = async () => {
       try {
         const res = await axios.get(`/library/${currentUser.username}`, { params: filter });
         setLibrary(res.data);
         console.log(res.data);
       } catch (err) {
-        console.error("Error fetching songs!", err);
+        console.error("Error fetching movies!", err);
       }
     };
 
@@ -100,7 +100,7 @@ const Library = () => {
       }
     }
 
-    loadSongs();
+    loadMovies();
     loadLikedCount();
   }, [filter]);
 
@@ -111,18 +111,18 @@ const Library = () => {
     });
   };
 
-  const handleSongDelete = async (id) => {
+  const handleMovieDelete = async (id) => {
     try {
-      setLibrary(prevLibrary => prevLibrary.filter(song => song.ID !== id));
+      setLibrary(prevLibrary => prevLibrary.filter(movie => movie.ID !== id));
       setLikedCnt(prevLikedCnt => (prevLikedCnt - 1) >= 0 ? prevLikedCnt - 1 : 0);
-      removeSong(id);
+      removeMovie(id);
     } catch (err) {
-      console.error("Error deleting song!", err);
+      console.error("Error deleting movie!", err);
     }
   };
 
-  const handlePlaySong = (url) => {
-    playSong(url);
+  const handlePlayMovie = (url) => {
+    playMovie(url);
   };
 
   const handleFile = (e) => {
@@ -150,8 +150,8 @@ const Library = () => {
 
   const handleRatingUpdate = (id, newRating) => {
     setLibrary(prevLibrary =>
-      prevLibrary.map(song =>
-        song.ID === id ? { ...song, ocjena: newRating } : song
+      prevLibrary.map(movie =>
+        movie.ID === id ? { ...movie, ocjena: newRating } : movie
       )
     );
   };
@@ -165,7 +165,7 @@ const Library = () => {
             <img src={currentUser.slika} alt='' className={styles.ProfileImage} />
             <div className={styles.username}>
               <h1 className={styles.name}>{currentUser.username}</h1>
-              <h5 className={styles.numofsongs}>Liked songs: {likedcnt}</h5>
+              <h5 className={styles.numofmovies}>Liked movies: {likedcnt}</h5>
             </div>
           </div>
           <div className={styles.changePFP}>
@@ -216,23 +216,27 @@ const Library = () => {
           </div>
         </div>
         </div>
-        <div className={styles.SongsContainer}>
-          <div className={styles.SongList}>
-            {library.map(song => (
-              <Kartica
-              key={song.ID}
-              id={song.ID}
-              naziv={song.naziv}
-              ocjena={song.ocjena}
-              artist={song.artist}
-              trajanje={song.trajanje}
-              naziv_zanra={song.naziv_zanra}
-              url={song.url}
-              onPlaySong={handlePlaySong}
-              onSongDelete={handleSongDelete}
+        <div className={styles.MoviesContainer}>
+          <div className={styles.MovieList}>
+          {Array.isArray(library) && library.length > 0 ? (
+          library.map(movie => (
+            <Kartica
+              key={movie.ID}
+              id={movie.ID}
+              naziv={movie.naziv}
+              ocjena={movie.ocjena}
+              artist={movie.artist}
+              trajanje={movie.trajanje}
+              naziv_zanra={movie.naziv_zanra}
+              url={movie.url}
+              onPlayMovie={handlePlayMovie}
+              onMovieDelete={handleMovieDelete}
               onRatingChange={handleRatingUpdate}
-              />
-            ))}
+            />
+          ))
+        ) : (
+          <p>No movies available.</p>
+        )}
           </div>
         </div>
       </div>

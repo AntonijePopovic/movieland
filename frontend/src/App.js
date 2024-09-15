@@ -5,19 +5,19 @@ import Search from "./stranice/Search";
 import Login from "./stranice/Login";
 import Register from "./stranice/Register";
 import Admin from "./stranice/Admin";
-import { AudioPlayerProvider } from "./context/audioContext";
+// import { AudioPlayerProvider } from "./context/audioContext";
 import "./App.css";
-import AudioPlayer from "./komponente/AudioPlayer";
+// import AudioPlayer from "./komponente/AudioPlayer";
 import { useEffect } from "react";
 
 function App() {
   return (
     <div className="App">
-      <AudioPlayerProvider>
+      {/* <AudioPlayerProvider> */}
       <BrowserRouter>
         <AppRoutes/>
       </BrowserRouter>
-      </AudioPlayerProvider>
+      {/* </AudioPlayerProvider> */}
     </div>
   );
 }
@@ -47,7 +47,7 @@ const AppRoutes=()=>{
           <Route path="/register" element={<Register/>}/>
           <Route path="/admin" element={<Admin/>}/>
     </Routes>
-      {!noAudioPlayerPaths.includes(location.pathname) && <AudioPlayer />}
+      {!noAudioPlayerPaths.includes(location.pathname)}
     </>
   );
 };

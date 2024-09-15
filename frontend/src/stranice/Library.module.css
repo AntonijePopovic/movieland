@@ -54,12 +54,12 @@
     margin-bottom: 0;
 }
 
-.numofsongs{
+.numofmovies{
     font-size: 20px;
     margin-top: 0;
 }
 
-.SongsContainer{
+.MoviesContainer{
     width: 90%;
     height: 400px;
     display: flex;
@@ -67,7 +67,7 @@
     overflow-y: auto;
 }
 
-.SongList{
+.MovieList{
     padding: 0;
     display: flex;
     flex-wrap: wrap;
@@ -77,7 +77,7 @@
     width: 100%;
 }
 
-.SongItem{
+.MovieItem{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -88,11 +88,11 @@
     width: 10%;
 }
 
-.SongItem>h4,h5{
+.MovieItem>h4,h5{
     margin: 0;
 }
 
-.SongName:hover{
+.MovieName:hover{
     cursor: pointer;
     text-decoration: underline;
 }
@@ -145,7 +145,7 @@ editbtn{
 }
 
 @media (max-width:600px) {
-    .SongList{
+    .MovieList{
         padding: 0 20px;
         display: flex;
         justify-content: center;
@@ -163,7 +163,7 @@ editbtn{
 
     
 
-    .SongItem{
+    .MovieItem{
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -174,7 +174,7 @@ editbtn{
         margin-bottom: 15px;
     }
 
-    .SongsContainer{
+    .MoviesContainer{
         width: 90%;
         height: 350px;
         display: flex;
@@ -221,7 +221,7 @@ editbtn{
         margin-bottom: 0;
     }
     
-    .numofsongs{
+    .numofmovies{
         font-size: 18.5px;
         margin-top: 0;
         font-weight: 400;
