@@ -273,6 +273,33 @@ export const updateRateOfMovie = (req, res) => {
   });
 };
 
+export const showComments = (req, res) => {
+  const { movie_id } = req.params;
+
+  const query = `
+    SELECT k.username, fk.comment
+    FROM film_korisnik fk
+    JOIN korisnik k ON fk.korisnik_username = k.username
+    WHERE fk.id_film = ?
+  `;
+  
+  db.query(query, [movie_id], (err, results) => {
+    if (err) {
+      console.error('Error fetching comments:', err);
+      return res.status(500).json({ error: 'Error fetching comments' });
+    }
+
+    // Format results as an array of objects with username and comment
+    const comments = results.map(row => ({
+      username: row.username,
+      comment: row.comment
+    }));
+
+    res.json(comments);
+  });
+};
+
+
 export const removeLike = (req, res) => {
   const { username, movie_id } = req.params;
 

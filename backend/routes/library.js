@@ -1,5 +1,5 @@
 import express from "express";
-import { LikeCount, getLikedByUser, getRateOfMovie, likeMovie, removeLike, updateRateOfMovie, getRestOfMovies, addComment } from "../controllers/librarycontroller.js";
+import { LikeCount, getLikedByUser, getRateOfMovie, likeMovie, removeLike, updateRateOfMovie, getRestOfMovies, addComment, showComments } from "../controllers/librarycontroller.js";
 
 const router=express.Router();
 
@@ -22,5 +22,8 @@ router.delete("/:username/:movie_id", removeLike);
 
 //prikazi ocjenu za datu pjesmu od datog korisnika!!!
 router.get("/:username/:movie_id/ocjena", getRateOfMovie);
+
+//priakzi komentare za film
+router.get('/comments/:movie_id', showComments);
 
 export default router;
