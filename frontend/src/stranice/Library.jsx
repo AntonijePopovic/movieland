@@ -7,16 +7,13 @@ import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { AudioPlayerContext } from '../context/audioContext';
 
-const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onPlayMovie, onMovieDelete, onRatingChange }) => {
+const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onMovieDelete, onRatingChange }) => {
   const { currentUser } = useContext(AuthContext);
   const {removeMovie}=useContext(MovieContext);
   const [editing, isEditing]=useState(false);
   const [newRating, setNewRating]=useState(ocjena);
 
-  const handlePlayMovie = () => {
-    onPlayMovie(url);
-  };
-  
+
   const unlikeMovie=async()=>{
     try{
       const res=await axios.delete(`/library/${currentUser.username}/${id}`);
@@ -49,7 +46,7 @@ const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onPlay
 
   return (
     <div className={styles.MovieItem}>
-      <h4 className={styles.MovieName} onClick={handlePlayMovie}>{naziv}</h4>
+      <h4 className={styles.MovieName}>{naziv}</h4>
       <h5 className={styles.MovieArtist}>{artist}</h5>
       <h5 className={styles.MovieRate} title='Izmijeni ocjenu' onClick={()=>isEditing(!editing)}>{ocjena?ocjena:"dodaj"}</h5>
      {editing && (
@@ -67,7 +64,6 @@ const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onPlay
 
 const Library = () => {
   const { removeMovie } = useContext(MovieContext);
-  const { playMovie } = useContext(AudioPlayerContext);
   const [library, setLibrary] = useState([]);
   const [likedcnt, setLikedCnt] = useState();
   const { currentUser, setCurrentUser } = useContext(AuthContext);
@@ -119,10 +115,6 @@ const Library = () => {
     } catch (err) {
       console.error("Error deleting movie!", err);
     }
-  };
-
-  const handlePlayMovie = (url) => {
-    playMovie(url);
   };
 
   const handleFile = (e) => {
@@ -229,7 +221,6 @@ const Library = () => {
               trajanje={movie.trajanje}
               naziv_zanra={movie.naziv_zanra}
               url={movie.url}
-              onPlayMovie={handlePlayMovie}
               onMovieDelete={handleMovieDelete}
               onRatingChange={handleRatingUpdate}
             />

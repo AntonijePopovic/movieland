@@ -1,220 +1,231 @@
-// import { db } from "../server.js";
+import { db } from "../server.js";
 
-// export const getLikedByUser = (req, res) => {
-//   const { username } = req.params;
-//   const {search, filter, sort}=req.query;
+export const getLikedByUser = (req, res) => {
+  const { username } = req.params;
+  const {search, filter, sort}=req.query;
 
-//   let baseQuery = `
-//     SELECT pjesma.ID, pjesma.naziv, pjesma.url, pjesma.trajanje, pjesma.naziv_zanra, pjesma_korisnik.ocjena, izvodjac.ime AS artist
-//     FROM pjesma
-//     INNER JOIN pjesma_korisnik ON pjesma.ID = pjesma_korisnik.id_pjesma
-//     INNER JOIN pjesma_izvodjac ON pjesma.ID = pjesma_izvodjac.id_pjesma
-//     INNER JOIN izvodjac ON pjesma_izvodjac.ime_izvodjac = izvodjac.ime
-//     INNER JOIN zanr ON pjesma.naziv_zanra = zanr.naziv
-//     WHERE pjesma_korisnik.korisnik_username = ?
-//     `;
-//     const queryParams=[username];
+  let baseQuery = `
+    SELECT film.ID, film.naziv, film.trailer_url, film.naziv_zanra, film.reziser, film.description, film_korisnik.ocjena
+    FROM film
+    INNER JOIN film_korisnik ON film.ID = film_korisnik.id_film
+    INNER JOIN zanr ON film.naziv_zanra = zanr.naziv
+    WHERE film_korisnik.korisnik_username = ?
+    `;
+    const queryParams=[username];
 
-//     if(search){
-//       baseQuery+=` AND (pjesma.naziv LIKE ? OR izvodjac.ime LIKE ? OR pjesma.naziv_zanra LIKE ?)`;
-//       const searchQuery=`%${search}%`;
-//       queryParams.push(searchQuery, searchQuery, searchQuery);
-//     }
+    if(search){
+      baseQuery+=` AND (film.naziv LIKE ?  OR film.naziv_zanra LIKE ? OR film.reziser LIKE ? OR film.description LIKE ?)`;
+      const searchQuery=`%${search}%`;
+      queryParams.push(searchQuery, searchQuery, searchQuery);
+    }
 
-//     if (filter !== '-') {
-//       let column;
-//       switch (filter) {
-//         case 'Genre':
-//           column = 'pjesma.naziv_zanra';
-//           break;
-//         case 'Artist':
-//           column = 'artist';
-//           break;
-//         case 'Title':
-//           column = 'pjesma.naziv';
-//           break;
-//         case 'Duration':
-//           column = 'pjesma.trajanje';
-//           break;
-//         case 'Rating':
-//           column = 'pjesma_korisnik.ocjena';
-//           break;
-//         default:
-//           column = null;
-//           break;
-//       }
-//       if (column) {
-//         baseQuery += ` ORDER BY ${column} ${sort === 'asc' ? 'ASC' : 'DESC'}`;
-//       }
-//     }
+    if (filter !== '-') {
+      let column;
+      switch (filter) {
+        case 'Genre':
+          column = 'film.naziv_zanra';
+          break;
+        case 'Artist':
+          column = 'artist';
+          break;
+        case 'Title':
+          column = 'film.naziv';
+          break;
+        case 'Director':
+          column = 'film.reziser';
+          break;
+        case 'Description':
+          column = 'film.description';
+          break;
+        case 'Rating':
+          column = 'film_korisnik.ocjena';
+          break;
+        default:
+          column = null;
+          break;
+      }
+      if (column) {
+        baseQuery += ` ORDER BY ${column} ${sort === 'asc' ? 'ASC' : 'DESC'}`;
+      }
+    }
 
  
-//     db.query(baseQuery, queryParams, (err, data) => {
-//       if (err) return res.json(err);
-//       return res.json(data);
-//     });
-// };
+    db.query(baseQuery, queryParams, (err, data) => {
+      if (err) return res.json(err);
+      return res.json(data);
+    });
+};
 
-// export const getRestOfSongs = (req, res) => {
-//   const { filter, sort, search } = req.query;
-//   const username = req.params.username;
+export const getRestOfMovies = (req, res) => {
+  
+  const { filter, sort, search } = req.query;
+  const username = req.params.username;
 
-//   let baseQuery = `
-//     SELECT p.ID, i.ime_izvodjac, p.naziv AS naziv_pjesma, p.url, p.trajanje, p.ocjena, z.naziv AS zanr_naziv
-//     FROM pjesma p
-//     INNER JOIN pjesma_izvodjac i ON i.id_pjesma = p.ID
-//     INNER JOIN zanr z ON z.naziv = p.naziv_zanra
-//     WHERE p.ID NOT IN (
-//         SELECT id_pjesma
-//         FROM pjesma_korisnik
-//         WHERE korisnik_username = ?
-//     )`;
+  let baseQuery = `
+    SELECT f.ID, f.naziv AS naziv_film, f.trailer_url, f.reziser, f.description, z.naziv AS zanr_naziv
+    FROM film f
+    INNER JOIN zanr z ON z.naziv = f.naziv_zanra
+    WHERE f.ID NOT IN (
+        SELECT id_film
+        FROM film_korisnik
+        WHERE korisnik_username = ?
+    )`;
 
-//   let queryParams = [username];
+  let queryParams = [username];
 
-//   if (search) {
-//     baseQuery += ` AND (i.ime_izvodjac LIKE ? OR p.naziv LIKE ? OR z.naziv LIKE ?)`;
-//     const searchQuery = `%${search}%`;
-//     queryParams.push(searchQuery, searchQuery, searchQuery);
-//   }
+  if (search) {
+    baseQuery += ` AND (f.naziv LIKE ? OR z.naziv LIKE ? OR f.description LIKE ? OR f.reziser LIKE ?)`;
+    const searchQuery = `%${search}%`;
+    queryParams.push(searchQuery, searchQuery, searchQuery);
+  }
 
-//   if (filter !== '-') {
-//     let column;
-//     switch (filter) {
-//       case 'Genre':
-//         column = 'z.naziv';
-//         break;
-//       case 'Artist':
-//         column = 'i.ime_izvodjac';
-//         break;
-//       case 'Title':
-//         column = 'p.naziv';
-//         break;
-//       case 'Duration':
-//         column = 'p.trajanje';
-//         break;
-//       case 'Rating':
-//         column = 'p.ocjena';
-//         break;
-//       default:
-//         column = null;
-//         break;
-//     }
-//     if (column) {
-//       baseQuery += ` ORDER BY ${column} ${sort === 'asc' ? 'ASC' : 'DESC'}`;
-//     }
-//   }
+  if (filter !== '-') {
+    let column;
+    switch (filter) {
+      case 'Genre':
+        column = 'z.naziv';
+        break;
+      case 'Title':
+        column = 'f.naziv';
+        break;
+      case 'Director':
+        column = 'film.reziser';
+        break;
+      case 'Description':
+        column = 'film.description';
+        break;
+      default:
+        column = null;
+        break;
+    }
+    if (column) {
+      baseQuery += ` ORDER BY ${column} ${sort === 'asc' ? 'ASC' : 'DESC'}`;
+    }
+  }
 
-//   db.query(baseQuery, queryParams, (err, data) => {
-//     if (err) return res.json(err);
-//     return res.json(data);
-//   });
-// };
+  db.query(baseQuery, queryParams, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+};
 
-// export const likeSong = (req, res) => {
-//   const { username, song_id } = req.params;
-//   const { ocjena } = req.body; //opciono
-//   const checkUserQuery = "SELECT * FROM KORISNIK WHERE username = ?";
-//   db.query(checkUserQuery, [username], (err, userResult) => {
-//     if (err) return res.json(err);
+export const likeMovie = (req, res) => {
+  const { username, movie_id } = req.params;
+  const { ocjena } = req.body; //opciono
 
-//     if (userResult.length === 0)
-//       return res.status(404).json("Korisnik ne postoji!");
+  console.log("Received request to like movie", { username, movie_id, ocjena });
 
-//     // Check if the song exists
-//     const checkSongQuery = `SELECT * FROM  pjesma p WHERE  p.ID = ? AND
-// p.ID NOT IN (
-//         SELECT id_pjesma
-//         FROM pjesma_korisnik
-//         WHERE korisnik_username = ?
-//     );`;
-//     db.query(checkSongQuery, [song_id, username], (err, songResult) => {
-//       if (err) return res.json(err);
+  const checkUserQuery = "SELECT * FROM korisnik WHERE username = ?";
+  db.query(checkUserQuery, [username], (err, userResult) => {
+    if (err) {
+      console.error("Error checking user:", err);
+      return res.json(err);
+    }
 
-//       if (songResult.length === 0)
-//         return res.status(404).json("Pjesma ne postoji!");
+    if (userResult.length === 0) {
+      console.log("User does not exist:", username);
+      return res.status(404).json("Korisnik ne postoji!");
+    }
 
-//       // Check if the user already liked the song
-//       const checkLikeQuery =
-//         "SELECT * FROM pjesma_korisnik WHERE id_pjesma = ? AND korisnik_username = ?";
-//       db.query(checkLikeQuery, [song_id, username], (err, likeResult) => {
-//         if (err) return res.json(err);
+    const checkMovieQuery = `SELECT * FROM film WHERE ID = ? AND ID NOT IN (
+      SELECT id_film FROM film_korisnik WHERE korisnik_username = ?
+    );`;
+    db.query(checkMovieQuery, [movie_id, username], (err, movieResult) => {
+      if (err) {
+        console.error("Error checking movie:", err);
+        return res.json(err);
+      }
 
-//         if (likeResult.length > 0)
-//           return res.status(400).json("Pjesma vec lajkovana!");
+      if (movieResult.length === 0) {
+        console.log("Movie does not exist or has already been liked:", movie_id);
+        return res.status(404).json("film ne postoji!");
+      }
 
-//         // Like the song
+      const checkLikeQuery = "SELECT * FROM film_korisnik WHERE id_film = ? AND korisnik_username = ?";
+      db.query(checkLikeQuery, [movie_id, username], (err, likeResult) => {
+        if (err) {
+          console.error("Error checking like:", err);
+          return res.json(err);
+        }
 
-//         const q =
-//           "insert into pjesma_korisnik (id_pjesma, korisnik_username, ocjena) values (?,?,?)";
-//         db.query(q, [song_id, username, ocjena || null], (err, data) => {
-//           if (err) return res.json(err);
-//           return res.json("uspjesno lajkovana pjesma!");
-//         });
-//       });
-//     });
-//   });
-// };
+        if (likeResult.length > 0) {
+          console.log("Movie already liked:", movie_id);
+          return res.status(400).json("film vec lajkovana!");
+        }
 
-// export const LikeCount = (req, res) => {
-//   const { username } = req.params;
-//   const q = `
-//             select count(*) as LikedCnt
-//             from pjesma_korisnik
-//             where korisnik_username=?
-//     `;
-//   db.query(q, [username], (err, data) => {
-//     if (err) return res.json(err);
-//     if (data.length === 0) return res.status(404).json("Korisnik ne postoji!");
-//     return res.json(data[0]);
-//   });
-// };
+        const q = "INSERT INTO film_korisnik (id_film, korisnik_username, ocjena) VALUES (?, ?, ?)";
+        db.query(q, [movie_id, username, ocjena || null], (err, data) => {
+          if (err) {
+            console.error("Error inserting like:", err);
+            return res.json(err);
+          }
+          console.log("Movie successfully liked:", movie_id);
+          return res.json("uspjesno lajkovana film!");
+        });
+      });
+    });
+  });
+};
 
-// export const updateRateOfSong = (req, res) => {
-//   const { username, song_id } = req.params;
-//   const { ocjena } = req.body;
+export const LikeCount = (req, res) => {
+  const { username } = req.params;
+  const q = `
+            select count(*) as LikedCnt
+            from film_korisnik
+            where korisnik_username=?
+    `;
+  db.query(q, [username], (err, data) => {
+    if (err) return res.json(err);
+    if (data.length === 0) return res.status(404).json("Korisnik ne postoji!");
+    return res.json(data[0]);
+  });
+};
 
-//   // Check if the user has liked the song
-//   const checkLikeQuery =
-//     "SELECT * FROM pjesma_korisnik WHERE id_pjesma = ? AND korisnik_username = ?";
-//   db.query(checkLikeQuery, [song_id, username], (err, likeResults) => {
-//     if (err) return res.json(err);
+export const updateRateOfMovie = (req, res) => {
+  const { username, movie_id } = req.params;
+  const { ocjena } = req.body;
 
-//     const likedSong = likeResults.length > 0;
+  // Check if the user has liked the movie
+  const checkLikeQuery =
+    "SELECT * FROM film_korisnik WHERE id_film = ? AND korisnik_username = ?";
+  db.query(checkLikeQuery, [movie_id, username], (err, likeResults) => {
+    if (err) return res.json(err);
 
-//     if (!likedSong) return res.status(400).json("User has not liked this song");
+    const likedMovie = likeResults.length > 0;
 
-//     // Update the rating for the song in the pjesma_korisnik table
-//     const updateRatingQuery =
-//       "UPDATE pjesma_korisnik SET ocjena = ? WHERE id_pjesma = ? AND korisnik_username = ?";
-//     db.query(updateRatingQuery, [ocjena, song_id, username], (err, result) => {
-//       if (err) return res.json(err);
-//       return res.json("Ocjena pjesme za korisnika uspjesno azurirana!");
-//     });
-//   });
-// };
+    if (!likedMovie) return res.status(400).json("User has not liked this movie");
 
-// export const removeLike = (req, res) => {
-//   const { username, song_id } = req.params;
+    // Update the rating for the movie in the film_korisnik table
+    const updateRatingQuery =
+      "UPDATE film_korisnik SET ocjena = ? WHERE id_film = ? AND korisnik_username = ?";
+    db.query(updateRatingQuery, [ocjena, movie_id, username], (err, result) => {
+      if (err) return res.json(err);
+      return res.json("Ocjena pjesme za korisnika uspjesno azurirana!");
+    });
+  });
+};
 
-//   const deleteLikeQuery =
-//     "DELETE FROM pjesma_korisnik WHERE id_pjesma = ? AND korisnik_username = ?";
-//   db.query(deleteLikeQuery, [song_id, username], (err, result) => {
-//     if (err) return res.json(err);
-//     return res.json("Song disliked successfully");
-//   });
-// };
+export const removeLike = (req, res) => {
+  const { username, movie_id } = req.params;
 
-// export const getRateOfSong = (req, res) => {
-//   const { username, song_id } = req.params;
-//   const q =
-//     "select ocjena from pjesma_korisnik where id_pjesma=? and korisnik_username=?";
-//   db.query(q, [song_id, username], (err, data) => {
-//     if (err) return res.json(err);
-//     if (data.length === 0)
-//       return res
-//         .status(404)
-//         .json("Ne postoji ocjena za ovu pjesmu od korisnika!");
-//     return res.json(data[0]);
-//   });
-// };
+  const deleteLikeQuery =
+    "DELETE FROM film_korisnik WHERE id_film = ? AND korisnik_username = ?";
+  db.query(deleteLikeQuery, [movie_id, username], (err, result) => {
+    if (err) return res.json(err);
+    return res.json("Movie disliked successfully");
+  });
+};
+
+export const getRateOfMovie = (req, res) => {
+  const { username, movie_id } = req.params;
+  const q =
+    "select ocjena from film_korisnik where id_film=? and korisnik_username=?";
+  db.query(q, [movie_id, username], (err, data) => {
+    if (err) return res.json(err);
+    if (data.length === 0)
+      return res
+        .status(404)
+        .json("Ne postoji ocjena za ovu pjesmu od korisnika!");
+    return res.json(data[0]);
+  });
+};

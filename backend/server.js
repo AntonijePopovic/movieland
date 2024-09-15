@@ -9,7 +9,7 @@ import movieRoutes from "./routes/movies.js";
 import userRoutes from "./routes/users.js";
 import genreRoutes from "./routes/genre.js";
 import authRoutes from "./routes/auth.js";
-// import libraryRoutes from "./routes/library.js";
+import libraryRoutes from "./routes/library.js";
 import newsRoutes from "./routes/news.js";
 import imageRoutes from "./routes/image.js";
 
@@ -40,7 +40,7 @@ app.use("/public/slike", express.static(staticImagePath));
 
 app.use("/api/movies", movieRoutes);
 app.use("/api/genres", genreRoutes);
-// app.use("/api/library", libraryRoutes);
+app.use("/api/library", libraryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);

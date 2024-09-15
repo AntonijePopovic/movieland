@@ -5,12 +5,10 @@ import { AuthContext } from '../context/authContext';
 import { MovieContext } from '../context/MovieContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
-import { AudioPlayerContext } from '../context/audioContext';
 
 const Search = () => {
   const { currentUser } = useContext(AuthContext);
   const { addedMovies, addMovie } = useContext(MovieContext);
-  const {playMovie}=useContext(AudioPlayerContext);
   const [listOfMovies, setListOfMovies] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [filterOption, setFilterOption] = useState("-");
@@ -28,7 +26,9 @@ const Search = () => {
       setListOfMovies(res.data);
       console.log("Loaded movies!");
     } catch (err) {
-      console.error("Greska pri fetchovanju pjesama!", err);
+      console.error('aaaaaa')
+      console.error(axios.get(`/library/${currentUser.username}/exc`))
+      console.error("Greska pri fetchovanju pjesamaa!", err);
     }
   };
 
@@ -45,28 +45,24 @@ const Search = () => {
     console.log(id);
     try {
       const res = await axios.post(`/library/${currentUser.username}/${id}`);
-      alert(res.data);
+      alert(JSON.stringify(res.data, null, 2)); 
       addMovie(id);
     } catch (err) {
       console.error("Greska pri dodavanju!", err);
     }
   };
 
-  const handlePlayMovie = (url) => {
-    playMovie(url);
-  };
 
   const filterList = listOfMovies.filter((movie)=>!addedMovies.has(movie.ID));
 
   const ListItemResult = ({ movie }) => (
     <div className={styles.ListItemResult} key={movie.ID}>
-      <h4 onDoubleClick={() => handlePlayMovie(movie.url)}>{movie.ime_izvodjac}</h4>
-      <h4 onDoubleClick={() => handlePlayMovie(movie.url)}>{movie.naziv_pjesma}</h4>
+      <h4>{movie.naziv_film}</h4>
       <h5>{movie.trajanje}</h5>
       <h5>{movie.zanr_naziv}</h5>
       <h5>{movie.ocjena}</h5>
       {currentUser.je_admin === 0 ? (
-        <button className={styles.Dodaj} onClick={() => addMovieEvent(movie.ID)}>Dodaj pjesmu</button>
+        <button className={styles.Dodaj} onClick={() => addMovieEvent(movie.ID)}>Dodaj film</button>
       ) : (
         ""
       )}
