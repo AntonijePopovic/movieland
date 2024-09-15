@@ -5,59 +5,65 @@ import { AuthContext } from '../context/authContext';
 import { MovieContext } from '../context/MovieContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
-import { AudioPlayerContext } from '../context/audioContext';
 
-const Kartica = ({ id, naziv, ocjena, trajanje, artist, url, naziv_zanra, onMovieDelete, onRatingChange }) => {
+
+const Kartica = ({ id, naziv, trajanje, artist, url, naziv_zanra, comment, onMovieDelete, onCommentChange }) => {
   const { currentUser } = useContext(AuthContext);
-  const {removeMovie}=useContext(MovieContext);
-  const [editing, isEditing]=useState(false);
-  const [newRating, setNewRating]=useState(ocjena);
+  const { removeMovie } = useContext(MovieContext);
+  const [editing, setEditing] = useState(false);
+  const [newComment, setNewComment] = useState(comment || '');
 
-
-  const unlikeMovie=async()=>{
-    try{
-      const res=await axios.delete(`/library/${currentUser.username}/${id}`);
-      alert("Pjesma obrisana!");
+  const unlikeMovie = async () => {
+    try {
+      const res = await axios.delete(`/library/${currentUser.username}/${id}`);
+      alert("Movie removed!");
       if (onMovieDelete) {
         onMovieDelete(id);
       }
       removeMovie(id);
-    } catch(err){
-      alert("Greska pri brisanju!");
-      console.error("Greska pri brisanju!", err);
+    } catch (err) {
+      alert("Error removing movie!");
+      console.error("Error removing movie!", err);
     }
-  }
-  
-  const handleRatingClick=()=>{
-    isEditing(true);
   };
 
-  const handleRatingSubmit=async(e)=>{
+  const handleCommentClick = () => {
+    setEditing(true);
+  };
+
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    try{
-      const res=await axios.put(`library/${currentUser.username}/${id}`,{ocjena:newRating});
-      onRatingChange(id, newRating);
-      isEditing(false);
-    } catch(err){
-      alert("Greska pri azuriranju ocjene!");
-      console.error(err);
+    try {
+      const res = await axios.put(`/library/${currentUser.username}/${id}`, { comment: newComment });
+      if (res.status === 200) {
+        onCommentChange(id, newComment);
+        setEditing(false);
+        alert(JSON.stringify(res.data, null, 2)); 
+      } else {
+        alert("Failed to update comment!");
+      }
+    } catch (err) {
+      alert("Error updating comment!");
+      console.error("Error updating comment!", err);
     }
-  }
+  };  
 
   return (
     <div className={styles.MovieItem}>
       <h4 className={styles.MovieName}>{naziv}</h4>
       <h5 className={styles.MovieArtist}>{artist}</h5>
-      <h5 className={styles.MovieRate} title='Izmijeni ocjenu' onClick={()=>isEditing(!editing)}>{ocjena?ocjena:"dodaj"}</h5>
-     {editing && (
-      <form action="" onSubmit={handleRatingSubmit}>
-        <input type="number" step={0.1} value={newRating} onChange={(e)=>setNewRating(e.target.value)} />
-        <button type="submit">Update</button>  
-      </form>
-     )}
+      <h5 className={styles.MovieComment} title='Edit comment' onClick={handleCommentClick}>
+        {comment ? comment : "Add comment"}
+      </h5>
+      {editing && (
+        <form onSubmit={handleCommentSubmit}>
+          <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} />
+          <button type="submit">Dodaj komentar</button>
+        </form>
+      )}
       <h5 className={styles.MovieDuration}>{trajanje}</h5>
       <h5>{naziv_zanra}</h5>
-      <button className={styles.delete} onClick={unlikeMovie}>Unlike</button>
+      <button className={styles.delete} onClick={unlikeMovie}>Remove</button>
     </div>
   );
 };
@@ -69,7 +75,7 @@ const Library = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
   const [filter, setFilter] = useState({ search: '', filter: '', sort: '' });
   const [slika, setSlika] = useState();
-  const [edit, setEdit]=useState(false);
+  const [edit, setEdit] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,7 +87,6 @@ const Library = () => {
       try {
         const res = await axios.get(`/library/${currentUser.username}`, { params: filter });
         setLibrary(res.data);
-        console.log(res.data);
       } catch (err) {
         console.error("Error fetching movies!", err);
       }
@@ -92,7 +97,7 @@ const Library = () => {
         const res = await axios.get(`/library/${currentUser.username}/count`);
         setLikedCnt(res.data.LikedCnt);
       } catch (err) {
-        console.error("Greska pri countu", err);
+        console.error("Error fetching liked count!", err);
       }
     }
 
@@ -121,29 +126,29 @@ const Library = () => {
     setSlika(e.target.files[0]);
   };
 
-  const handleChangeImage = async (e) => {
+  const handleChangeImage = async () => {
     const formdata = new FormData();
     formdata.append('slika', slika);
-    try{
-     await axios.post("/image/", formdata);
-     await axios.put("/users/pfp/", {
-      slika:`http://localhost:8800/public/slike/${slika.name}`,
-     });
-     setCurrentUser({
-      ...currentUser,
+    try {
+      await axios.post("/image/", formdata);
+      await axios.put("/users/pfp/", {
+        slika: `http://localhost:8800/public/slike/${slika.name}`,
+      });
+      setCurrentUser({
+        ...currentUser,
         slika: `http://localhost:8800/public/slike/${slika.name}`,
       });
       localStorage.setItem("user", JSON.stringify(currentUser));
-      setEdit(false)
+      setEdit(false);
     } catch (err) {
-      console.error(err);
+      console.error("Error changing profile picture!", err);
     }
-  }
+  };
 
-  const handleRatingUpdate = (id, newRating) => {
+  const handleCommentUpdate = (id, newComment) => {
     setLibrary(prevLibrary =>
       prevLibrary.map(movie =>
-        movie.ID === id ? { ...movie, ocjena: newRating } : movie
+        movie.ID === id ? { ...movie, comment: newComment } : movie
       )
     );
   };
@@ -161,78 +166,34 @@ const Library = () => {
             </div>
           </div>
           <div className={styles.changePFP}>
-            {edit?(<>
-            <label htmlFor="slika">Change pfp</label>
-            <input type="file" name="slika" id="slika" onChange={handleFile} className={styles.editpfp} />
-            <button onClick={handleChangeImage}>promijeni</button>
-            <button onClick={()=>setEdit(false)}>cancel</button>
-            </>):<button className={styles.editbtn} onClick={()=>setEdit(true)}>Edit pfp</button>}
+            {edit ? (
+              <div>
+                <input type="file" onChange={handleFile} />
+                <button onClick={handleChangeImage}>Change Image</button>
+              </div>
+            ) : (
+              <button onClick={() => setEdit(true)}>Edit Profile Picture</button>
+            )}
           </div>
         </div>
-        <div className={styles.FilterContainer}>
-          <input
-            type="text"
-            name="search"
-            placeholder="Filter by genre, artist, title"
-            value={filter.search}
-            onChange={handleFilterChange}
-          />
-          <select name="filter" value={filter.filter} onChange={handleFilterChange}>
-            <option value="-">-</option>
-            <option value="Title">Title</option>
-            <option value="Artist">Artist</option>
-            <option value="Duration">Duration</option>
-            <option value="Rating">Rating</option>
-            <option value="Genre">Genre</option>
-          </select>
-          <div className={styles.OrderRadioButtons}>
-            <label htmlFor='sort' style={{"fontFamily":"sans-serif"}}>Λ
-              </label>
-              <input
-                type="radio"
-                name="sort"
-                value="asc"
-                checked={filter.sort === 'asc'}
-                onChange={handleFilterChange}
-              />
-            <label htmlFor='sort'>V
-            </label>
-              <input
-                type="radio"
-                name="sort"
-                value="desc"
-                checked={filter.sort === 'desc'}
-                onChange={handleFilterChange}
-              />
-              
-          </div>
-        </div>
-        </div>
-        <div className={styles.MoviesContainer}>
-          <div className={styles.MovieList}>
-          {Array.isArray(library) && library.length > 0 ? (
-          library.map(movie => (
+        <div className={styles.MovieList}>
+          {library.map(movie => (
             <Kartica
               key={movie.ID}
               id={movie.ID}
               naziv={movie.naziv}
-              ocjena={movie.ocjena}
-              artist={movie.artist}
               trajanje={movie.trajanje}
-              naziv_zanra={movie.naziv_zanra}
+              artist={movie.artist}
               url={movie.url}
+              naziv_zanra={movie.naziv_zanra}
+              comment={movie.comment}
               onMovieDelete={handleMovieDelete}
-              onRatingChange={handleRatingUpdate}
+              onCommentChange={handleCommentUpdate}
             />
-          ))
-        ) : (
-          <p>No movies available.</p>
-        )}
-          </div>
+          ))}
         </div>
       </div>
-
+    </div>
   );
 };
-
 export default Library;

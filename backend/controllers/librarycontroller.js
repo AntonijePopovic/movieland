@@ -2,58 +2,54 @@ import { db } from "../server.js";
 
 export const getLikedByUser = (req, res) => {
   const { username } = req.params;
-  const {search, filter, sort}=req.query;
+  const { search, filter, sort } = req.query;
 
   let baseQuery = `
-    SELECT film.ID, film.naziv, film.trailer_url, film.naziv_zanra, film.reziser, film.description, film_korisnik.ocjena
+    SELECT film.ID, film.naziv, film.trailer_url, film.naziv_zanra, film.reziser, film.description, film_korisnik.comment
     FROM film
     INNER JOIN film_korisnik ON film.ID = film_korisnik.id_film
     INNER JOIN zanr ON film.naziv_zanra = zanr.naziv
     WHERE film_korisnik.korisnik_username = ?
-    `;
-    const queryParams=[username];
+  `;
+  const queryParams = [username];
 
-    if(search){
-      baseQuery+=` AND (film.naziv LIKE ?  OR film.naziv_zanra LIKE ? OR film.reziser LIKE ? OR film.description LIKE ?)`;
-      const searchQuery=`%${search}%`;
-      queryParams.push(searchQuery, searchQuery, searchQuery);
+  if (search) {
+    baseQuery += ` AND (film.naziv LIKE ?  OR film.naziv_zanra LIKE ? OR film.reziser LIKE ? OR film.description LIKE ?)`;
+    const searchQuery = `%${search}%`;
+    queryParams.push(searchQuery, searchQuery, searchQuery, searchQuery);
+  }
+
+  if (filter !== '-') {
+    let column;
+    switch (filter) {
+      case 'Genre':
+        column = 'film.naziv_zanra';
+        break;
+      case 'Artist':
+        column = 'film.reziser';
+        break;
+      case 'Title':
+        column = 'film.naziv';
+        break;
+      case 'Description':
+        column = 'film.description';
+        break;
+      case 'Comment':
+        column = 'film_korisnik.comment';
+        break;
+      default:
+        column = null;
+        break;
     }
-
-    if (filter !== '-') {
-      let column;
-      switch (filter) {
-        case 'Genre':
-          column = 'film.naziv_zanra';
-          break;
-        case 'Artist':
-          column = 'artist';
-          break;
-        case 'Title':
-          column = 'film.naziv';
-          break;
-        case 'Director':
-          column = 'film.reziser';
-          break;
-        case 'Description':
-          column = 'film.description';
-          break;
-        case 'Rating':
-          column = 'film_korisnik.ocjena';
-          break;
-        default:
-          column = null;
-          break;
-      }
-      if (column) {
-        baseQuery += ` ORDER BY ${column} ${sort === 'asc' ? 'ASC' : 'DESC'}`;
-      }
+    if (column) {
+      baseQuery += ` ORDER BY ${column} ${sort === 'asc' ? 'ASC' : 'DESC'}`;
     }
+  }
 
- 
-    db.query(baseQuery, queryParams, (err, data) => {
-      if (err) return res.json(err);
-      return res.json(data);
-    });
+  db.query(baseQuery, queryParams, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 };
 
 export const getRestOfMovies = (req, res) => {
@@ -108,6 +104,78 @@ export const getRestOfMovies = (req, res) => {
     return res.json(data);
   });
 };
+
+export const addComment = (req, res) => {
+  console.log("Received request:", req.method, req.url);
+  console.log("Request params:", req.params);
+  console.log("Request body:", req.body);
+
+  const { username, movie_id } = req.params;
+  const { comment } = req.body;
+
+  // Check user existence
+  const checkUserQuery = "SELECT * FROM korisnik WHERE username = ?";
+  db.query(checkUserQuery, [username], (err, userResult) => {
+    if (err) {
+      console.error("Error checking user:", err);
+      return res.status(500).json({ error: "Error checking user" });
+    }
+
+    if (userResult.length === 0) {
+      console.log("User does not exist:", username);
+      return res.status(404).json({ error: "User does not exist" });
+    }
+
+    // Check movie existence
+    const checkMovieQuery = "SELECT * FROM film WHERE ID = ?";
+    db.query(checkMovieQuery, [movie_id], (err, movieResult) => {
+      if (err) {
+        console.error("Error checking movie:", err);
+        return res.status(500).json({ error: "Error checking movie" });
+      }
+
+      if (movieResult.length === 0) {
+        console.log("Movie does not exist:", movie_id);
+        return res.status(404).json({ error: "Movie does not exist" });
+      }
+
+      // Check if comment exists
+      const checkCommentQuery = "SELECT * FROM film_korisnik WHERE id_film = ? AND korisnik_username = ?";
+      db.query(checkCommentQuery, [movie_id, username], (err, commentResult) => {
+        if (err) {
+          console.error("Error checking comment:", err);
+          return res.status(500).json({ error: "Error checking comment" });
+        }
+
+        if (commentResult.length > 0) {
+          // Update existing comment
+          const updateCommentQuery = "UPDATE film_korisnik SET comment = ? WHERE id_film = ? AND korisnik_username = ?";
+          db.query(updateCommentQuery, [comment, movie_id, username], (err, data) => {
+            if (err) {
+              console.error("Error updating comment:", err);
+              return res.status(500).json({ error: "Error updating comment" });
+            }
+            console.log("Comment updated successfully!");
+            return res.json({ message: "Comment updated successfully!" });
+          });
+        } else {
+          // Insert new comment
+          const addCommentQuery = "INSERT INTO film_korisnik (id_film, korisnik_username, comment) VALUES (?, ?, ?)";
+          db.query(addCommentQuery, [movie_id, username, comment], (err, data) => {
+            if (err) {
+              console.error("Error adding comment:", err);
+              return res.status(500).json({ error: "Error adding comment" });
+            }
+            console.log("Comment added successfully!");
+            return res.json({ message: "Comment added successfully!" });
+          });
+        }
+      });
+    });
+  });
+};
+
+
 
 export const likeMovie = (req, res) => {
   const { username, movie_id } = req.params;
